@@ -1,6 +1,6 @@
 # ♥️ API de Nayecute
 
-Esta es una API en Flask que muestra el **rango actual de Valorant** de `https://www.twitch.tv/nayecutee` usando la API de `https://docs.henrikdev.xyz/`.  
+Esta es una API en Flask que muestra el **rango actual de Valorant** de [Naye](https://www.twitch.tv/nayecutee) usando la API de [henrikdev](https://docs.henrikdev.xyz/).  
 Está hosteada en Render y puede mantenerse despierta con UptimeRobot.
 
 ## 🔹 Endpoints
@@ -68,6 +68,7 @@ Se obtiene automáticamente:
 
 ## 🏁Final
 
-- Hecho con cariño para `https://www.twitch.tv/nayecutee`  ❤️ 
-- Usando la API de `https://docs.henrikdev.xyz/`  para traer datos oficiales de Valorant. 
+- Hecho con cariño para [naye](https://www.twitch.tv/nayecutee)  ❤️ 
+- Usando la API de [henrikdev](https://docs.henrikdev.xyz/)  para traer datos oficiales de Valorant. 
+
 - Puedes usarla libremente y adaptarla para otros jugadores cambiando los datos de arriba (en `valorant/config.py`), siempre que mantengas los créditos a mi repositorio original :).
