@@ -3,7 +3,7 @@ from flask import Response
 from .config import NOMBRE, TAG, REGION, API_KEY
 from .rangos_es import Rangos_ES
 
-
+# Cambio de rango.
 def rango():
     """Endpoint de rango según tu implementación original usando v2/mmr y current_data."""
     url = (
@@ -21,19 +21,29 @@ def rango():
         rango_en = current_data.get('currenttierpatched', 'Desconocido')
         rango_es = Rangos_ES.get(rango_en, rango_en)
         puntos = current_data.get('ranking_in_tier', 'Desconocido')
-        mmr_change = current_data.get('mmr_change_to_last_game', 'Desconocido')
+        delta = current_data.get('mmr_change_to_last_game', None)
+
+        if isinstance(delta, int):
+            if delta > 0:
+                delta_txt = f"gané {delta} puntos"
+            elif delta < 0:
+                delta_txt = f"perdí {abs(delta)} puntos"
+            else:
+                delta_txt = "no cambié de puntos"
+        else:
+            delta_txt = "cambio de puntos desconocido"
 
         ultimo_agente = obtener_ultimo_agente()
 
         if ultimo_agente:
             respuesta = (
                 f"🎀💕actualmente estoy en {rango_es} con {puntos} puntos 🤗✨, "
-                f"Mi última partida con {ultimo_agente} : [{mmr_change}]"
+                f"mi última partida fue con {ultimo_agente} y {delta_txt}"
             )
         else:
             respuesta = (
                 f"🎀💕actualmente estoy en {rango_es} con {puntos} puntos 🤗✨, "
-                f"Mi última partida: [{mmr_change}]"
+                f"mi última partida: {delta_txt}"
             )
     except Exception as e:
         print("Error:", e)
@@ -63,7 +73,7 @@ def obtener_ultimo_agente():
         print(f"Error al obtener último agente: {e}")
         return None
 
-
+# Ultima ranked 
 def ultima_ranked():
     """Mantengo este endpoint adicional para detalles de la última ranked."""
     try:
