@@ -1,7 +1,7 @@
 from flask import request, Response
 from datetime import datetime, timezone
 from .config import CHANNEL_LOGIN, CLIENT_ID, CLIENT_SECRET
-from .api import get_user_id, get_follow_info
+from .api import get_user_id, get_follow_info, get_app_token
 import requests
 
 
@@ -91,3 +91,33 @@ def followage():
     delta = (now - followed_at).total_seconds()
     human = _humanize_duration(delta)
     return Response(f"{user_login} sigue a {channel_login} desde hace {human}.", mimetype="text/plain")
+
+
+def token():
+    """
+    Devuelve el app access token generado a partir de CLIENT_ID/CLIENT_SECRET
+    usando grant_type=client_credentials. Útil para diagnosticar credenciales.
+
+    Seguridad: este token otorga acceso de app. No lo expongas públicamente.
+    """
+    if not CLIENT_ID or not CLIENT_SECRET:
+        return Response("Faltan TWITCH_CLIENT_ID y/o TWITCH_CLIENT_SECRET.", mimetype="text/plain", status=500)
+    try:
+        tok = get_app_token()
+        return Response(tok or "", mimetype="text/plain")
+    except requests.exceptions.HTTPError as e:
+        status = getattr(e.response, "status_code", 500)
+        msg = ""
+        try:
+            body = e.response.json()
+            msg = body.get("message") or body.get("error") or ""
+        except Exception:
+            try:
+                msg = e.response.text[:200]
+            except Exception:
+                msg = ""
+        return Response(f"Error de Twitch ({status}): {msg}", mimetype="text/plain", status=502)
+    except requests.exceptions.RequestException:
+        return Response("No se pudo obtener el token desde Twitch.", mimetype="text/plain", status=502)
+    except Exception:
+        return Response("Error inesperado al generar token.", mimetype="text/plain", status=500)
