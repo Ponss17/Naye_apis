@@ -4,6 +4,7 @@ import os
 from valorant.index import valorant_index
 from valorant.endpoints import rango, ultima_ranked
 from twitch.endpoints import followage, token, status
+from twitch.config import CLIENT_ID
 
 app = Flask(__name__)
 
@@ -30,7 +31,8 @@ funcionando jiji, cualquier duda con ponsscito :)
 # OAuth callback simple para extraer access_token del fragmento
 @app.route('/oauth/callback')
 def oauth_callback():
-    html = """
+    auth_url = f"https://id.twitch.tv/oauth2/authorize?client_id={CLIENT_ID}&redirect_uri=https%3A%2F%2Fnaye2.onrender.com%2Foauth%2Fcallback&response_type=token&scope=moderator%3Aread%3Afollowers&force_verify=true"
+    html = f"""
 <!doctype html>
 <html>
   <head>
@@ -46,6 +48,9 @@ def oauth_callback():
     <h1>Token de Usuario</h1>
     <p>Si llegaste aquí desde Twitch OAuth, abajo verás tu <code>access_token</code>.</p>
     <pre id=\"out\">Esperando datos del fragmento...</pre>
+    <h2>¿No ves el token?</h2>
+    <p>Inicia el flujo OAuth con tu <code>client_id</code> configurado: <strong>{CLIENT_ID}</strong></p>
+    <p><a href=\"{auth_url}\">Autorizar con Twitch (implicit grant)</a></p>
     <script>
       (function(){
         const hash = new URLSearchParams(window.location.hash.slice(1));
