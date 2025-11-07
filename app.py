@@ -27,6 +27,45 @@ funcionando jiji, cualquier duda con ponsscito :)
 """
     return Response(mensaje, mimetype="text/plain")
 
+# OAuth callback simple para extraer access_token del fragmento
+@app.route('/oauth/callback')
+def oauth_callback():
+    html = """
+<!doctype html>
+<html>
+  <head>
+    <meta charset=\"utf-8\">
+    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
+    <title>OAuth Token</title>
+    <style>
+      body { font-family: system-ui, sans-serif; padding: 24px; }
+      pre { background: #111; color: #0f0; padding: 16px; border-radius: 8px; overflow-x: auto; }
+    </style>
+  </head>
+  <body>
+    <h1>Token de Usuario</h1>
+    <p>Si llegaste aquí desde Twitch OAuth, abajo verás tu <code>access_token</code>.</p>
+    <pre id=\"out\">Esperando datos del fragmento...</pre>
+    <script>
+      (function(){
+        const hash = new URLSearchParams(window.location.hash.slice(1));
+        const token = hash.get('access_token');
+        const error = hash.get('error_description') || hash.get('error');
+        const out = document.getElementById('out');
+        if (token) {
+          out.textContent = token;
+        } else if (error) {
+          out.textContent = 'Error: ' + error;
+        } else {
+          out.textContent = 'No se encontró access_token en el fragmento (#...).';
+        }
+      })();
+    </script>
+  </body>
+</html>
+    """
+    return Response(html, mimetype="text/html")
+
 # Valorant
 app.add_url_rule('/valorant', view_func=valorant_index)
 app.add_url_rule('/valorant/rango', view_func=rango)
