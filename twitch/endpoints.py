@@ -1,7 +1,7 @@
 from flask import request, Response
 from datetime import datetime, timezone
 from .config import CHANNEL_LOGIN, CLIENT_ID, CLIENT_SECRET
-from .api import get_user_id, get_follow_info, get_app_token
+from .api import get_user_id, get_follow_info, get_app_token, validate_token
 import requests
 
 
@@ -121,3 +121,56 @@ def token():
         return Response("No se pudo obtener el token desde Twitch.", mimetype="text/plain", status=502)
     except Exception:
         return Response("Error inesperado al generar token.", mimetype="text/plain", status=500)
+
+
+def status():
+    """
+    Muestra información de configuración y validación del token de aplicación:
+    - Canal configurado y su ID
+    - client_id asociado al token
+    - scopes y expiración
+    """
+    lines = []
+    lines.append("Estado de Twitch")
+    lines.append("")
+
+    # Canal configurado
+    channel_login = (CHANNEL_LOGIN or "").strip()
+    if not channel_login:
+        lines.append("Canal: (no configurado) -> define TWITCH_CHANNEL_LOGIN")
+    else:
+        try:
+            cid = get_user_id(channel_login)
+            if cid:
+                lines.append(f"Canal: {channel_login} (id: {cid})")
+            else:
+                lines.append(f"Canal: {channel_login} (no encontrado)")
+        except Exception:
+            lines.append(f"Canal: {channel_login} (error al resolver id)")
+
+    # Validar token de app
+    if not CLIENT_ID or not CLIENT_SECRET:
+        lines.append("Token: no disponible (faltan CLIENT_ID/SECRET)")
+    else:
+        try:
+            tok = get_app_token()
+            info = validate_token(tok)
+            client_id = info.get("client_id", "")
+            user_id = info.get("user_id")
+            expires_in = info.get("expires_in")
+            scopes = info.get("scopes", [])
+            lines.append(f"Token tipo: app (client_credentials)")
+            lines.append(f"Token client_id: {client_id}")
+            lines.append(f"Token user_id: {user_id}")
+            lines.append(f"Token expires_in: {expires_in}s")
+            lines.append(f"Token scopes: {', '.join(scopes) if scopes else '(sin scopes)'}")
+        except requests.exceptions.HTTPError as e:
+            status = getattr(e.response, "status_code", 500)
+            lines.append(f"Token: error HTTP {status} al validar")
+        except requests.exceptions.RequestException:
+            lines.append("Token: no se pudo validar (problema de red)")
+        except Exception:
+            lines.append("Token: error inesperado al validar")
+
+    body = "\n".join(lines) + "\n"
+    return Response(body, mimetype="text/plain")

@@ -58,3 +58,15 @@ def get_follow_info(follower_id: str, channel_id: str):
         return None
     follow = data.get("data", [])[0]
     return follow  # contiene followed_at
+
+
+def validate_token(token: str) -> dict:
+    """
+    Valida un token contra https://id.twitch.tv/oauth2/validate
+    Devuelve el JSON con client_id, user_id, expires_in, scopes, etc.
+    """
+    url = "https://id.twitch.tv/oauth2/validate"
+    headers = {"Authorization": f"Bearer {token}"}
+    r = requests.get(url, headers=headers, timeout=10)
+    r.raise_for_status()
+    return r.json()

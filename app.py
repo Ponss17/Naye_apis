@@ -3,7 +3,7 @@ from flask import Flask, Response
 import os
 from valorant.index import valorant_index
 from valorant.endpoints import rango, ultima_ranked
-from twitch.endpoints import followage, token
+from twitch.endpoints import followage, token, status
 
 app = Flask(__name__)
 
@@ -35,6 +35,7 @@ app.add_url_rule('/valorant/ultima-ranked', view_func=ultima_ranked)
 # twitch
 app.add_url_rule('/twitch/followage', view_func=followage)
 app.add_url_rule('/twitch/token', view_func=token)
+app.add_url_rule('/twitch/status', view_func=status)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
