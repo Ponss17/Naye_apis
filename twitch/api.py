@@ -23,7 +23,6 @@ def get_app_token():
     payload = r.json()
     APP_TOKEN = payload.get("access_token")
     expires_in = payload.get("expires_in", 0)
-    # Renovar 60s antes de expirar
     APP_TOKEN_EXPIRY = now + int(expires_in) - 60
     return APP_TOKEN
 
