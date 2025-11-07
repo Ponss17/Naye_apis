@@ -62,7 +62,19 @@ def followage():
 
     try:
         info = get_follow_info(follower_id, channel_id)
-    except requests.exceptions.RequestException:
+    except requests.exceptions.HTTPError as e:
+        status = getattr(e.response, "status_code", 500)
+        msg = ""
+        try:
+            body = e.response.json()
+            msg = body.get("message") or body.get("error") or ""
+        except Exception:
+            try:
+                msg = e.response.text[:200]
+            except Exception:
+                msg = ""
+        return Response(f"Error de Twitch ({status}): {msg}", mimetype="text/plain", status=502)
+    except requests.exceptions.RequestException as e:
         return Response("No se pudo consultar el follow en Twitch.", mimetype="text/plain", status=502)
     except Exception:
         return Response("Error inesperado al consultar follow.", mimetype="text/plain", status=500)
