@@ -24,7 +24,7 @@ def get_app_token():
     payload = r.json()
     APP_TOKEN = payload.get("access_token")
     expires_in = payload.get("expires_in", 0)
-    # Renovar 60s antes de expirar
+    # Renueva el token 60s antes de expirar
     APP_TOKEN_EXPIRY = now + int(expires_in) - 60
     return APP_TOKEN
 
@@ -40,7 +40,7 @@ def _headers():
 def _headers_user():
     token = (USER_ACCESS_TOKEN or "").strip()
     if not token:
-        # Esta llamada requiere token de usuario con permisos adecuados
+        # Esta llamada requiere token de usuario con los permisos relacionados del canal.
         raise RuntimeError("Falta TWITCH_USER_TOKEN/USER_ACCESS_TOKEN para consultar seguidores")
     return {
         "Client-ID": CLIENT_ID,
@@ -60,7 +60,6 @@ def get_user_id(login: str) -> Optional[str]:
 
 
 def get_follow_info(follower_id: str, channel_id: str):
-    # La ruta 'users/follows' fue retirada; usar 'channels/followers'
     url = "https://api.twitch.tv/helix/channels/followers"
     params = {"broadcaster_id": channel_id, "user_id": follower_id, "first": 1}
     r = requests.get(url, headers=_headers_user(), params=params, timeout=10)
@@ -70,7 +69,7 @@ def get_follow_info(follower_id: str, channel_id: str):
     if not items:
         return None
     follow = items[0]
-    return follow  # contiene followed_at
+    return follow
 
 
 def validate_token(token: str) -> dict:

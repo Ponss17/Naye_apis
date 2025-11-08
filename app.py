@@ -33,7 +33,7 @@ funcionando jiji, cualquier duda con ponsscito :)
 """
     return Response(mensaje, mimetype="text/plain")
 
-# OAuth callback simple para extraer access_token del fragmento
+# OAuth callback simple para extraer access_token del fragmento de URL
 @app.route('/oauth/callback')
 def oauth_callback():
     redirect_uri = url_for('oauth_callback', _external=True)

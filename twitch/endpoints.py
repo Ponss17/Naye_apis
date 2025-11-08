@@ -150,7 +150,7 @@ def status():
         except Exception:
             lines.append(f"Canal: {channel_login} (error al resolver id)")
 
-    # Validar token de app
+    # Valida el token de app
     if not CLIENT_ID or not CLIENT_SECRET:
         lines.append("Token: no disponible (faltan CLIENT_ID/SECRET)")
     else:
@@ -174,7 +174,7 @@ def status():
         except Exception:
             lines.append("Token: error inesperado al validar")
 
-    # Validar token de usuario (si está configurado)
+    # Valida el token de usuario (si está configurado)
     user_tok = (USER_ACCESS_TOKEN or "").strip()
     if not user_tok:
         lines.append("")
