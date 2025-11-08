@@ -53,7 +53,7 @@ Thumbs.db
 config.local.py
 settings.local.py
  
-# Archivos locales que no deben subirse
+# Archivos locales :)
 /.gitmessage
 /.local/
 /.local/**
