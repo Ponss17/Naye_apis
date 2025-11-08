@@ -9,7 +9,6 @@ from twitch.endpoints import followage, token, status, oauth_callback
 from twitch.index import twitch_index
 
 app = Flask(__name__, static_folder='img', static_url_path='/img')
-# Preferir https en URLs externas y respetar cabeceras de proxy
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
@@ -40,8 +39,8 @@ def index():
       .grid {{ display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }}
       @media (min-width: 800px) {{ .grid {{ grid-template-columns: 1fr 1fr; }} }}
       .item {{ background: #10151b; border: 1px solid #1f2530; border-radius: 12px; padding: 16px; }}
-      .title {{ display: flex; align-items: center; gap: 10px; }}
-      .title img {{ height: 28px; width: auto; border-radius: 6px; }}
+      .title {{ display: flex; align-items: center; gap: 12px; }}
+      .title img {{ height: 32px; width: auto; border-radius: 6px; }}
       .title a {{ color: white; text-decoration: none; font-weight: 600; }}
       .title a:hover {{ text-decoration: underline; }}
       ul {{ margin: 8px 0 0; padding-left: 18px; color: var(--muted); }}
