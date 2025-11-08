@@ -7,6 +7,8 @@ Está hosteada en Render y puede mantenerse despierta con UptimeRobot.
 
 - `/` → Muestra un mensaje de bienvenida con la lista de endpoints disponibles.
 - `/valorant` → Índice de endpoints específicos de Valorant.
+- `/twitch/followage` → Muestra cuánto tiempo sigue un usuario a un canal (requiere token de usuario de Twitch).
+- `/twitch/oauth` → Página para obtener fácilmente el `access_token` de usuario de Twitch.
 
 ## 🔹 Valorant
 
@@ -72,3 +74,18 @@ Se obtiene automáticamente:
 - Usando la API de [henrikdev](https://docs.henrikdev.xyz/)  para traer datos oficiales de Valorant. 
 
 - Puedes usarla libremente y adaptarla para otros jugadores cambiando los datos de arriba (en `valorant/config.py`), siempre que mantengas los créditos a mi repositorio original :).
+
+## 🔹 Twitch: obtener el token de usuario
+
+Para usar el endpoint de Twitch (`/twitch/followage`) necesitas un `TWITCH_USER_ACCESS_TOKEN` con el scope `moderator:read:followers`.
+
+Pasos rápidos:
+
+1. Asegúrate de tener configurado `TWITCH_CLIENT_ID` y `TWITCH_CLIENT_SECRET` (o `CLIENT_ID` / `CLIENT_SECRET`).
+2. Entra a `http://<tu-host>/twitch/oauth` (local: `http://localhost:5000/twitch/oauth`).
+3. Pulsa “Autorizar en Twitch”, inicia sesión con el broadcaster del canal o un moderador.
+4. Al volver, copia el `access_token` mostrado y configúralo como `TWITCH_USER_ACCESS_TOKEN` (o `USER_ACCESS_TOKEN`).
+
+Notas:
+- El redirect se hace a la misma página `/twitch/oauth` y el token aparece en la pantalla.
+- En Render, añade estas variables en “Environment”: `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `TWITCH_CHANNEL_LOGIN`, `TWITCH_USER_ACCESS_TOKEN`.
