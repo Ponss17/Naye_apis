@@ -6,6 +6,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from valorant.index import valorant_index
 from valorant.endpoints import rango, ultima_ranked
 from twitch.endpoints import followage, token, status, oauth_callback
+from twitch.index import twitch_index
 
 app = Flask(__name__)
 # Preferir https en URLs externas y respetar cabeceras de proxy
@@ -39,6 +40,7 @@ app.add_url_rule('/valorant/rango', view_func=rango)
 app.add_url_rule('/valorant/ultima-ranked', view_func=ultima_ranked)
 
 # twitch
+app.add_url_rule('/twitch', view_func=twitch_index)
 app.add_url_rule('/twitch/followage', view_func=followage)
 app.add_url_rule('/twitch/token', view_func=token)
 app.add_url_rule('/twitch/status', view_func=status)
