@@ -1,13 +1,17 @@
 
-from flask import Flask, Response, url_for
+from flask import Flask, Response, url_for, request
 import os
 import urllib.parse
+from werkzeug.middleware.proxy_fix import ProxyFix
 from valorant.index import valorant_index
 from valorant.endpoints import rango, ultima_ranked
 from twitch.endpoints import followage, token, status
 from twitch.config import CLIENT_ID
 
 app = Flask(__name__)
+# Preferir https en URLs externas y respetar cabeceras de proxy
+app.config['PREFERRED_URL_SCHEME'] = 'https'
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
 @app.route('/')
 def index():
@@ -33,6 +37,11 @@ funcionando jiji, cualquier duda con ponsscito :)
 @app.route('/oauth/callback')
 def oauth_callback():
     redirect_uri = url_for('oauth_callback', _external=True)
+    # Forzar https en Render si el proxy no indica correctamente el esquema
+    host = request.host or ""
+    xfp = (request.headers.get('X-Forwarded-Proto') or '').split(',')[0].strip()
+    if 'onrender.com' in host and xfp != 'https' and redirect_uri.startswith('http://'):
+        redirect_uri = 'https://' + host + url_for('oauth_callback')
     auth_url = (
         "https://id.twitch.tv/oauth2/authorize?client_id="
         + (CLIENT_ID or "")
