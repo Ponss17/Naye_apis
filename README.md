@@ -7,6 +7,10 @@ Está hosteada en Render y puede mantenerse despierta con UptimeRobot.
 
 - `/` → Muestra un mensaje de bienvenida con la lista de endpoints disponibles.
 - `/valorant` → Índice de endpoints específicos de Valorant.
+ - `/twitch` → Índice de endpoints de Twitch.
+
+Nota sobre configuración de Twitch
+- Si quieres ver cómo configurar y usar Twitch (OAuth, tokens y endpoints), revisa `docs/twitch.md`.
 
 ## 🔹 Valorant
 
