@@ -147,7 +147,6 @@ def status():
     if not channel_login:
         lines.append("Canal: (no configurado) -> define TWITCH_CHANNEL_LOGIN")
     else:
-        # No mostramos el ID del canal para evitar datos innecesarios.
         lines.append(f"Canal configurado: {channel_login}")
 
     # Valida el token de app
@@ -156,7 +155,6 @@ def status():
     else:
         try:
             tok = get_app_token()
-            # Validamos sin mostrar detalles del token.
             validate_token(tok)
             lines.append("Token de app: válido")
         except requests.exceptions.HTTPError as e:
@@ -179,7 +177,6 @@ def status():
             has_followers = "moderator:read:followers" in scopes
             lines.append("")
             lines.append("Token usuario: presente")
-            # Solo mostramos la verificación del scope requerido, sin exponer información sensible.
             lines.append(f"Scope requerido moderator:read:followers: {'OK' if has_followers else 'FALTA'}")
         except requests.exceptions.HTTPError as e:
             status = getattr(e.response, "status_code", 500)
@@ -250,7 +247,6 @@ def oauth_callback():
         return Response(unauthorized, mimetype="text/html", status=401)
 
     redirect_uri = url_for('oauth_callback', _external=True)
-    # Forzar https en Render si el proxy no indica correctamente el esquema
     host = request.host or ""
     xfp = (request.headers.get('X-Forwarded-Proto') or '').split(',')[0].strip()
     if 'onrender.com' in host and xfp != 'https' and redirect_uri.startswith('http://'):
