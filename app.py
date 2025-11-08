@@ -1,12 +1,11 @@
 
-from flask import Flask, Response, url_for, request
+from flask import Flask, Response
 import os
 import urllib.parse
 from werkzeug.middleware.proxy_fix import ProxyFix
 from valorant.index import valorant_index
 from valorant.endpoints import rango, ultima_ranked
-from twitch.endpoints import followage, token, status
-from twitch.config import CLIENT_ID, ENDPOINT_PASSWORD
+from twitch.endpoints import followage, token, status, oauth_callback
 
 app = Flask(__name__)
 # Preferir https en URLs externas y respetar cabeceras de proxy
@@ -33,103 +32,6 @@ funcionando jiji, cualquier duda con ponsscito :)
 """
     return Response(mensaje, mimetype="text/plain")
 
-# OAuth callback simple para extraer access_token del fragmento de URL
-@app.route('/oauth/callback')
-def oauth_callback():
-    # Protección por contraseña
-    pwd = request.args.get("password") or request.headers.get("X-Endpoint-Password")
-    if (ENDPOINT_PASSWORD or "") and pwd != (ENDPOINT_PASSWORD or ""):
-        unauthorized = """
-<!doctype html>
-<html>
-  <head>
-    <meta charset=\"utf-8\">
-    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
-    <title>Acceso protegido</title>
-    <style>
-      body { font-family: system-ui, sans-serif; padding: 24px; }
-      input { padding: 8px; font-size: 14px; }
-      button { padding: 8px 12px; font-size: 14px; }
-    </style>
-  </head>
-  <body>
-    <h1>Acceso protegido</h1>
-    <p>Ingresa la clave para acceder al callback.</p>
-    <input type=\"password\" id=\"pw\" placeholder=\"Contraseña\">
-    <button id=\"go\">Entrar</button>
-    <script>
-      (function(){
-        const go = document.getElementById('go');
-        go.addEventListener('click', function(){
-          const pw = document.getElementById('pw').value;
-          const url = new URL(window.location.href);
-          url.searchParams.set('password', pw);
-          window.location.href = url.toString();
-        });
-      })();
-    </script>
-  </body>
-</html>
-        """
-        return Response(unauthorized, mimetype="text/html", status=401)
-    redirect_uri = url_for('oauth_callback', _external=True)
-    # Forzar https en Render si el proxy no indica correctamente el esquema
-    host = request.host or ""
-    xfp = (request.headers.get('X-Forwarded-Proto') or '').split(',')[0].strip()
-    if 'onrender.com' in host and xfp != 'https' and redirect_uri.startswith('http://'):
-        redirect_uri = 'https://' + host + url_for('oauth_callback')
-    auth_url = (
-        "https://id.twitch.tv/oauth2/authorize?client_id="
-        + (CLIENT_ID or "")
-        + "&redirect_uri="
-        + urllib.parse.quote(redirect_uri, safe="")
-        + "&response_type=token&scope=moderator%3Aread%3Afollowers&force_verify=true"
-    )
-    html_template = """
-<!doctype html>
-<html>
-  <head>
-    <meta charset=\"utf-8\">
-    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
-    <title>OAuth Token</title>
-    <style>
-      body { font-family: system-ui, sans-serif; padding: 24px; }
-      pre { background: #111; color: #0f0; padding: 16px; border-radius: 8px; overflow-x: auto; }
-    </style>
-  </head>
-  <body>
-    <h1>Token de Usuario</h1>
-    <p>Si llegaste aquí desde Twitch OAuth, abajo verás tu <code>access_token</code>.</p>
-    <pre id=\"out\">Esperando datos del fragmento...</pre>
-    <h2>¿No ves el token?</h2>
-    <p>Inicia el flujo OAuth con tu <code>client_id</code> configurado: <strong>__CLIENT_ID__</strong></p>
-    <p>Redirect URI actual: <code>__REDIRECT_URI__</code></p>
-    <p><a href=\"__AUTH_URL__\">Autorizar con Twitch (implicit grant)</a></p>
-    <script>
-      (function(){
-        const hash = new URLSearchParams(window.location.hash.slice(1));
-        const token = hash.get('access_token');
-        const error = hash.get('error_description') || hash.get('error');
-        const out = document.getElementById('out');
-        if (token) {
-          out.textContent = token;
-        } else if (error) {
-          out.textContent = 'Error: ' + error;
-        } else {
-          out.textContent = 'No se encontró access_token en el fragmento (#...).';
-        }
-      })();
-    </script>
-  </body>
-</html>
-    """
-    html = (
-        html_template
-        .replace("__CLIENT_ID__", CLIENT_ID or "")
-        .replace("__AUTH_URL__", auth_url)
-        .replace("__REDIRECT_URI__", redirect_uri)
-    )
-    return Response(html, mimetype="text/html")
 
 # Valorant
 app.add_url_rule('/valorant', view_func=valorant_index)
@@ -140,6 +42,7 @@ app.add_url_rule('/valorant/ultima-ranked', view_func=ultima_ranked)
 app.add_url_rule('/twitch/followage', view_func=followage)
 app.add_url_rule('/twitch/token', view_func=token)
 app.add_url_rule('/twitch/status', view_func=status)
+app.add_url_rule('/oauth/callback', view_func=oauth_callback)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
