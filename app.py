@@ -8,7 +8,7 @@ from valorant.endpoints import rango, ultima_ranked
 from twitch.endpoints import followage, token, status, oauth_callback
 from twitch.index import twitch_index
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='img', static_url_path='/img')
 # Preferir https en URLs externas y respetar cabeceras de proxy
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
@@ -40,7 +40,9 @@ def index():
       .grid {{ display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }}
       @media (min-width: 800px) {{ .grid {{ grid-template-columns: 1fr 1fr; }} }}
       .item {{ background: #10151b; border: 1px solid #1f2530; border-radius: 12px; padding: 16px; }}
-      .title a {{ color: white; text-decoration: none; }}
+      .title {{ display: flex; align-items: center; gap: 10px; }}
+      .title img {{ height: 28px; width: auto; border-radius: 6px; }}
+      .title a {{ color: white; text-decoration: none; font-weight: 600; }}
       .title a:hover {{ text-decoration: underline; }}
       ul {{ margin: 8px 0 0; padding-left: 18px; color: var(--muted); }}
       li {{ margin: 6px 0; }}
@@ -55,7 +57,10 @@ def index():
       <p>Selecciona una sección para ver sus endpoints y ejemplos.</p>
       <div class=\"grid\">
         <div class=\"item\">
-          <div class=\"title\"><a href=\"{v_index}\">Valorant</a></div>
+          <div class=\"title\">
+            <img src=\"{url_for('static', filename='valorant/valorant.webp')}\" alt=\"Valorant\" loading=\"lazy\" />
+            <a href=\"{v_index}\">Valorant</a>
+          </div>
           <ul>
             <li><a href=\"{v_rango}\">/valorant/rango</a> — rango actual, puntos y MMR</li>
             <li><a href=\"{v_ultima}\">/valorant/ultima-ranked</a> — última partida (mapa, agente, KDA, resultado)</li>
@@ -65,15 +70,18 @@ def index():
           </div>
         </div>
 
-        <div class=\"item\">
-          <div class=\"title\"><a href=\"{t_index}\">Twitch</a></div>
+        <div class=\"item\"> 
+          <div class=\"title\">
+            <img src=\"{url_for('static', filename='twitch/twitch.webp')}\" alt=\"Twitch\" loading=\"lazy\" />
+            <a href=\"{t_index}\">Twitch</a>
+          </div>
           <ul>
             <li><a href=\"{t_callback}\">/oauth/callback</a> — flujo implícito para obtener access_token</li>
             <li><a href=\"{t_status}\">/twitch/status</a> — validar tokens y configuración</li>
             <li><a href=\"{t_follow}\">/twitch/followage?user=ponss17</a> — followage de un usuario de ejemplo</li>
             <li><a href=\"{t_token}\">/twitch/token</a> — app token (protegido)</li>
           </ul>
-          <div class=\"row\">
+          <div class=\"row\"> 
             <a class=\"btn\" href=\"{t_index}\">Ir al índice de Twitch</a>
           </div>
         </div>
