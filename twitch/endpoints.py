@@ -6,7 +6,6 @@ from .api import get_user_id, get_follow_info, get_app_token, validate_token
 import requests
 import re
 import logging
-import random
 from common.response import text_response
 from common.http import get_session
 from common.cache import SimpleTTLCache
@@ -117,84 +116,6 @@ def followage():
     result = f"{user_login} sigue a {channel_login} desde hace {human}."
     _cache.set(cache_key, result)
     return text_response(result)
-
-# duelo(prueba)
-def duelo():
-    """
-    Genera una narrativa de duelo entre quien usa el comando y quien es etiquetado.
-
-    Parámetros:
-      - ?user: login/nombre de quien usa el comando
-      - ?target (o ?tag): login/nombre de la persona etiquetada
-
-    Respuesta:
-      - Por defecto: texto plano con 5 líneas describiendo el duelo y el ganador.
-      - Opcional: si se especifica ?step=N, devuelve solo la línea N (1–5).
-    """
-    user = (request.args.get("user") or "").strip()
-    target = (request.args.get("target") or request.args.get("tag") or "").strip()
-
-    if not user or not target:
-        return text_response("Debes proporcionar ?user=<quien usa el comando> y ?target=<etiquetado>.", 400)
-
-    # Permite letras, números y guiones bajos; quita '@' inicial si viene de menciones
-    if target.startswith("@"):
-        target = target[1:]
-    name_re = r"^[A-Za-z0-9_]{1,32}$"
-    if not re.fullmatch(name_re, user):
-        return text_response("'user' inválido. Usa A–Z, 0–9 y _.", 400)
-    if not re.fullmatch(name_re, target):
-        return text_response("'target' inválido. Usa A–Z, 0–9 y _.", 400)
-
-    scenario_key = f"duelo:scenario:{user}:{target}"
-    scenario = _cache.get(scenario_key)
-    if scenario and isinstance(scenario, dict) and 'lines' in scenario:
-        lines = scenario['lines']
-    else:
-        first = random.choice([user, target])
-        second = target if first == user else user
-        winner = random.choice([user, target])
-        lines = [
-            f"{user} ha retado a un duelo a muerte a {target}.",
-            f"El duelo se nota tenso, {first} golpea primero.",
-            f"{second} no se queda atrás y golpea también.",
-            "El duelo está muy reñido, no se sabe quién ganará.",
-            f"{winner} ha ganado, fue un duro combate pero se llevó la victoria."
-        ]
-        # Mantiene el escenario por unos minutos para que los pasos sean coherentes
-        _cache.set(scenario_key, { 'lines': lines }, ttl=300)
-
-    # Modo burst: devuelve las 5 líneas en un solo mensaje (separadas por " | ")
-    mode0 = (request.args.get("mode") or "").strip().lower()
-    if mode0 in ("burst", "multi"):
-        return text_response(" | ".join(lines))
-
-    step_param = request.args.get("step")
-    if step_param is not None and step_param != "":
-        try:
-            n = int(step_param)
-        except ValueError:
-            return text_response("'step' debe ser un número entre 1 y 5.", 400)
-        if n < 1:
-            n = 1
-        idx = (n - 1) % len(lines)
-        return text_response(lines[idx])
-
-    mode = (request.args.get("mode") or "").strip().lower()
-    cycle_flag = mode == "cycle" or ((request.args.get("cycle") or "").strip().lower() in ("1", "true", "yes"))
-    reset_flag = ((request.args.get("reset") or "").strip().lower() in ("1", "true", "yes"))
-    if cycle_flag:
-        progress_key = f"duelo:progress:{user}:{target}"
-        prev = _cache.get(progress_key)
-        n = (prev if isinstance(prev, int) else 0) + 1
-        if reset_flag:
-            n = 1
-        if n > len(lines):
-            n = 1
-        _cache.set(progress_key, n, ttl=300)
-        return text_response(lines[n-1])
-
-    return text_response("\n".join(lines))
 
 
 def token():
