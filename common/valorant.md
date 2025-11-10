@@ -4,17 +4,12 @@ Esta API expone dos endpoints de Valorant apoyándose en HenrikDev y en utilidad
 
 ## Endpoints
 
-- `/valorant/rango`
-  - Fuente: `GET https://api.henrikdev.xyz/valorant/v2/mmr/{REGION}/{NOMBRE}/{TAG}?api_key=...`
-  - Devuelve rango actual (traducido a ES), puntos y delta de MMR respecto a la última partida.
-  - Incluye el último agente jugado consultando el endpoint de partidas.
+### `/valorant/rango`
+- Fuente: `GET https://api.henrikdev.xyz/valorant/v2/mmr/{REGION}/{NOMBRE}/{TAG}?api_key=...`
+- Devuelve rango actual (traducido a ES), puntos y delta de MMR respecto a la última partida.
+- Incluye el último agente jugado consultando el endpoint de partidas.
 
-- `/valorant/ultima-ranked`
-  - Fuente: `GET https://api.henrikdev.xyz/valorant/v3/matches/{REGION}/{NOMBRE}/{TAG}?api_key=...`
-  - Devuelve mapa, agente, KDA (kills/deaths/assists), si ganó/perdió y el delta de MMR de la última partida.
-
-## Ejemplos de respuesta: `/valorant/rango`
-
+Ejemplos:
 ```python
 🎀💕 Actualmente estoy en Diamante 2 con 53 puntos 🤗✨. Mi última ranked fue con Jett, gané 18 puntos nayecuTeAmor
 ```
@@ -24,6 +19,23 @@ Esta API expone dos endpoints de Valorant apoyándose en HenrikDev y en utilidad
 ```python
 🎀💕 Actualmente estoy en Platino 3 con 0 puntos 🤗✨. Mi última ranked fue con Sage, no cambié de puntos 😐
 ```
+
+### `/valorant/ultima-ranked`
+- Fuente: `GET https://api.henrikdev.xyz/valorant/v3/matches/{REGION}/{NOMBRE}/{TAG}?api_key=...`
+- Devuelve mapa, agente, KDA (kills/deaths/assists), si ganó/perdió y el delta de MMR de la última partida.
+
+Ejemplos:
+```python
+🎀💕 Mi última ranked fue en Ascent con Jett, mi KDA fue 15/7/3. ganamos y gané 18 puntos nayecuTeAmor 🤗✨
+```
+```python
+🎀💕 Mi última ranked fue en Haven con Sage, mi KDA fue 8/10/12. perdimos y perdí 14 puntos 😢
+```
+```python
+🎀💕 Mi última ranked fue en Split con Omen, mi KDA fue 11/9/5. empatamos y no cambié de puntos 😐
+```
+
+ 
 
 ## Configuración
 
@@ -56,15 +68,3 @@ API_KEY = os.environ.get("API_KEY", "")
 - Traducciones de rango: `valorant/rangos_es.py`.
 - Mensajes se formatean en español y se pueden ajustar en `valorant/endpoints.py`.
 - Si cambias jugador/region, no necesitas modificar código de endpoints; sólo `valorant/config.py`.
-
-## Ejemplos de respuesta: `/valorant/ultima-ranked`
-
-```python
-🎀💕 Mi última ranked fue en Ascent con Jett, mi KDA fue 15/7/3. ganamos y gané 18 puntos nayecuTeAmor 🤗✨
-```
-```python
-🎀💕 Mi última ranked fue en Haven con Sage, mi KDA fue 8/10/12. perdimos y perdí 14 puntos 😢
-```
-```python
-🎀💕 Mi última ranked fue en Split con Omen, mi KDA fue 11/9/5. empatamos y no cambié de puntos 😐
-```

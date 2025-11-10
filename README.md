@@ -31,15 +31,9 @@ Guías técnicas:
 Endpoints:
 - `/valorant/rango` → rango actual, puntos, cambio de MMR y último agente.
 - `/valorant/ultima-ranked` → mapa, agente, KDA, resultado y delta MMR.
+• Ejemplos de respuesta y detalles: ver [common/valorant.md](./common/valorant.md)
 
-### Ejemplos de respuesta:
-
-#### Endpoint `/valorant/rango`:
-
-Los ejemplos de respuesta para este endpoint están ahora en la guía técnica de Valorant. Ver ejemplos en [common/valorant.md](./common/valorant.md).
-
-#### Endpoint `/valorant/ultima-ranked`:
-Los ejemplos de respuesta para este endpoint están ahora en la guía técnica de Valorant. Ver ejemplos en [common/valorant.md](./common/valorant.md).
+ 
 - Los mensajes se pueden modificar.
 
 ## 🔹 Variables necesarias
