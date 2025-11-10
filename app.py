@@ -22,6 +22,15 @@ logging.basicConfig(level=logging.INFO)
 limiter = Limiter(get_remote_address, app=app, default_limits=["100 per minute"]) 
 _session = get_session()
 
+# Cabeceras de seguridad para las respuestas
+@app.after_request
+def add_security_headers(resp: Response):
+    resp.headers.setdefault('X-Content-Type-Options', 'nosniff')
+    resp.headers.setdefault('X-Frame-Options', 'DENY')
+    resp.headers.setdefault('Referrer-Policy', 'no-referrer')
+    resp.headers.setdefault('Content-Security-Policy', "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'")
+    return resp
+
 @app.route('/')
 def index():
     v_index = url_for('valorant_index')

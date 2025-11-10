@@ -19,7 +19,7 @@ services:
         sync: false
       - key: TWITCH_ENDPOINT_PASSWORD
         sync: false
-    healthCheckPath: /
+    healthCheckPath: /healthz
     plan: free
     region: oregon
     scaling:

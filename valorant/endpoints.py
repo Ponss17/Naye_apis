@@ -1,18 +1,18 @@
+import os
 import requests
 import time
 import urllib.parse
 import logging
-from flask import Response
 from .config import NOMBRE, TAG, REGION, API_KEY
 from .rangos_es import Rangos_ES
+from common.response import text_response
+from common.http import get_session
+from common.cache import SimpleTTLCache
 
-_session = requests.Session()
+_session = get_session()
 
-def text_response(body: str, status: int = 200):
-    return Response(body, content_type='text/plain; charset=utf-8', status=status)
-
-CACHE_TTL = 15
-_CACHE: dict[str, dict] = {}
+CACHE_TTL = int(os.environ.get("VALORANT_CACHE_TTL", "15"))
+_cache = SimpleTTLCache(default_ttl=CACHE_TTL)
 
 def _quoted(s: str) -> str:
     return urllib.parse.quote(s or "", safe='')
@@ -41,9 +41,9 @@ def rango():
     )
 
     cache_key = f"rango:{REGION}:{name_q}:{tag_q}"
-    cached = _CACHE.get(cache_key)
-    if cached and (time.time() - cached.get('ts', 0) < CACHE_TTL):
-        return text_response(cached.get('val', ''))
+    cached = _cache.get(cache_key)
+    if cached:
+        return text_response(cached)
 
     try:
         res = _session.get(url, timeout=10)
@@ -71,7 +71,7 @@ def rango():
                 f"🎀💕 actualmente estoy en {rango_es} con {puntos} puntos 🤗✨, "
                 f"mi última partida: {delta_txt}"
             )
-        _CACHE[cache_key] = {"val": respuesta, "ts": time.time()}
+        _cache.set(cache_key, respuesta)
         return text_response(respuesta)
     except requests.exceptions.HTTPError:
         logging.exception("HTTP error en /valorant/rango")
@@ -120,9 +120,9 @@ def ultima_ranked():
         tag_q = _quoted(TAG)
 
         cache_key = f"ultima:{REGION}:{name_q}:{tag_q}"
-        cached = _CACHE.get(cache_key)
-        if cached and (time.time() - cached.get('ts', 0) < CACHE_TTL):
-            return text_response(cached.get('val', ''))
+        cached = _cache.get(cache_key)
+        if cached:
+            return text_response(cached)
 
         url = (
             f"https://api.henrikdev.xyz/valorant/v3/matches/"
@@ -167,7 +167,7 @@ def ultima_ranked():
             f"🎀💕 Mi última ranked fue en {mapa} con {personaje}, mi KDA fue {k}/{d}/{a}. "
             f"{resultado_txt} y {delta_txt} 🤗✨"
         )
-        _CACHE[cache_key] = {"val": mensaje, "ts": time.time()}
+        _cache.set(cache_key, mensaje)
         return text_response(mensaje)
     except requests.exceptions.HTTPError:
         logging.exception("HTTP error en /valorant/ultima-ranked")

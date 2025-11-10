@@ -266,7 +266,9 @@ def oauth_callback():
   </body>
 </html>
         """
-        return Response(unauthorized, mimetype="text/html", status=401)
+        resp = Response(unauthorized, mimetype="text/html", status=401)
+        resp.headers['Cache-Control'] = 'no-store'
+        return resp
 
     redirect_uri = url_for('oauth_callback', _external=True)
     host = request.host or ""
@@ -355,4 +357,6 @@ def oauth_callback():
         .replace("__AUTH_URL__", auth_url)
         .replace("__REDIRECT_URI__", redirect_uri)
     )
-    return Response(html, mimetype="text/html")
+    resp = Response(html, mimetype="text/html")
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
