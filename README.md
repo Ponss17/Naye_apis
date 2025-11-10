@@ -3,8 +3,8 @@
 API en Flask con endpoints para Valorant y Twitch, desplegada en Render. Incluye caché con TTL, sesión HTTP con reintentos, cabeceras de seguridad globales y `Flask-Limiter` para rate limiting.
 
 Guías técnicas:
-- Valorant: `common/valorant.md`
-- Render y healthcheck: `common/render.md`
+- Valorant: `docs/valorant.md`
+- Render y healthcheck: `docs/render.md`
 - Twitch: `docs/twitch.md`
 
 ## 🔹 Endpoints
@@ -40,7 +40,7 @@ Guías técnicas:
 Endpoints:
 - `/valorant/rango` → rango actual, puntos, cambio de MMR y último agente.
 - `/valorant/ultima-ranked` → mapa, agente, KDA, resultado y delta MMR.
-• Ejemplos de respuesta y detalles: ver [common/valorant.md](./common/valorant.md)
+• Ejemplos de respuesta y detalles: ver [docs/valorant.md](./docs/valorant.md)
 
  
 - Los mensajes se pueden modificar.
@@ -75,7 +75,7 @@ Se obtiene automáticamente:
 - Archivo: `render.yaml` (service `web` con healthcheck en `/healthz`).
 - Healthcheck: `/healthz` verifica rápidamente dependencias externas (HenrikDev y doc de Twitch).
 - Env vars: `API_KEY`, y las de Twitch si usas esa sección.
-- Guía técnica ampliada: `common/render.md`.
+- Guía técnica ampliada: `docs/render.md`.
 
 ## 🚀 Despliegue rápido
 
