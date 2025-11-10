@@ -127,7 +127,9 @@ def duelo():
       - ?user: login/nombre de quien usa el comando
       - ?target (o ?tag): login/nombre de la persona etiquetada
 
-    Respuesta: texto plano con 5 líneas describiendo el duelo y el ganador.
+    Respuesta:
+      - Por defecto: texto plano con 5 líneas describiendo el duelo y el ganador.
+      - Opcional: si se especifica ?step=N, devuelve solo la línea N (1–5).
     """
     user = (request.args.get("user") or "").strip()
     target = (request.args.get("target") or request.args.get("tag") or "").strip()
@@ -155,6 +157,18 @@ def duelo():
         "El duelo está muy reñido, no se sabe quién ganará.",
         f"{winner} ha ganado, fue un duro combate pero se llevó la victoria."
     ]
+    step_param = request.args.get("step")
+    if step_param is not None and step_param != "":
+        try:
+            n = int(step_param)
+        except ValueError:
+            return text_response("'step' debe ser un número entre 1 y 5.", 400)
+        # Normaliza el índice para que siempre esté dentro del rango de líneas
+        if n < 1:
+            n = 1
+        idx = (n - 1) % len(lines)
+        return text_response(lines[idx])
+
     return text_response("\n".join(lines))
 
 
