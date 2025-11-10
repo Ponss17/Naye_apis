@@ -93,7 +93,7 @@ def index():
 
         <div class=\"item\"> 
           <div class=\"title\">
-            <img src=\"{url_for('static', filename='twitch/Twitch.webp')}\" alt=\"Twitch\" loading=\"lazy\" />
+            <img src=\"{url_for('static', filename='twitch/twitch.webp')}\" alt=\"Twitch\" loading=\"lazy\" />
             <a href=\"{t_index}\">Twitch</a>
           </div>
           <ul>
