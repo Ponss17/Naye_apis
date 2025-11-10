@@ -146,29 +146,53 @@ def duelo():
     if not re.fullmatch(name_re, target):
         return text_response("'target' inválido. Usa A–Z, 0–9 y _.", 400)
 
-    first = random.choice([user, target])
-    second = target if first == user else user
-    winner = random.choice([user, target])
+    # Construye/recupera un escenario estable para este par user-target
+    scenario_key = f"duelo:scenario:{user}:{target}"
+    scenario = _cache.get(scenario_key)
+    if scenario and isinstance(scenario, dict) and 'lines' in scenario:
+        lines = scenario['lines']
+    else:
+        first = random.choice([user, target])
+        second = target if first == user else user
+        winner = random.choice([user, target])
+        lines = [
+            f"{user} ha retado a un duelo a muerte a {target}.",
+            f"El duelo se nota tenso, {first} golpea primero.",
+            f"{second} no se queda atrás y golpea también.",
+            "El duelo está muy reñido, no se sabe quién ganará.",
+            f"{winner} ha ganado, fue un duro combate pero se llevó la victoria."
+        ]
+        # Mantiene el escenario por unos minutos para que los pasos sean coherentes
+        _cache.set(scenario_key, { 'lines': lines }, ttl=300)
 
-    lines = [
-        f"{user} ha retado a un duelo a muerte a {target}.",
-        f"El duelo se nota tenso, {first} golpea primero.",
-        f"{second} no se queda atrás y golpea también.",
-        "El duelo está muy reñido, no se sabe quién ganará.",
-        f"{winner} ha ganado, fue un duro combate pero se llevó la victoria."
-    ]
+    # Soporte de paso explícito
     step_param = request.args.get("step")
     if step_param is not None and step_param != "":
         try:
             n = int(step_param)
         except ValueError:
             return text_response("'step' debe ser un número entre 1 y 5.", 400)
-        # Normaliza el índice para que siempre esté dentro del rango de líneas
         if n < 1:
             n = 1
         idx = (n - 1) % len(lines)
         return text_response(lines[idx])
 
+    # Modo ciclo: avanza automáticamente una línea por invocación sin usar 'step'
+    mode = (request.args.get("mode") or "").strip().lower()
+    cycle_flag = mode == "cycle" or ((request.args.get("cycle") or "").strip().lower() in ("1", "true", "yes"))
+    reset_flag = ((request.args.get("reset") or "").strip().lower() in ("1", "true", "yes"))
+    if cycle_flag:
+        progress_key = f"duelo:progress:{user}:{target}"
+        prev = _cache.get(progress_key)
+        n = (prev if isinstance(prev, int) else 0) + 1
+        if reset_flag:
+            n = 1
+        if n > len(lines):
+            n = 1
+        _cache.set(progress_key, n, ttl=300)
+        return text_response(lines[n-1])
+
+    # Por defecto: devuelve las 5 líneas en un único texto
     return text_response("\n".join(lines))
 
 
