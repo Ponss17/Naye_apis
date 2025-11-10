@@ -79,7 +79,7 @@ def index():
       <div class=\"grid\">
         <div class=\"item\">
           <div class=\"title\">
-            <img src=\"{url_for('static', filename='valorant/valoran_Icon_purple.webp')}\" alt=\"Valorant\" loading=\"lazy\" />
+            <img src=\"{url_for('static', filename='valorant/valorant_Icon_purple.webp')}\" alt=\"Valorant\" loading=\"lazy\" />
             <a href=\"{v_index}\">Valorant</a>
           </div>
           <ul>
