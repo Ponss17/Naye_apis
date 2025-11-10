@@ -146,7 +146,6 @@ def duelo():
     if not re.fullmatch(name_re, target):
         return text_response("'target' inválido. Usa A–Z, 0–9 y _.", 400)
 
-    # Construye/recupera un escenario estable para este par user-target
     scenario_key = f"duelo:scenario:{user}:{target}"
     scenario = _cache.get(scenario_key)
     if scenario and isinstance(scenario, dict) and 'lines' in scenario:
@@ -165,7 +164,11 @@ def duelo():
         # Mantiene el escenario por unos minutos para que los pasos sean coherentes
         _cache.set(scenario_key, { 'lines': lines }, ttl=300)
 
-    # Soporte de paso explícito
+    # Modo burst: devuelve las 5 líneas en un solo mensaje (separadas por " | ")
+    mode0 = (request.args.get("mode") or "").strip().lower()
+    if mode0 in ("burst", "multi"):
+        return text_response(" | ".join(lines))
+
     step_param = request.args.get("step")
     if step_param is not None and step_param != "":
         try:
@@ -177,7 +180,6 @@ def duelo():
         idx = (n - 1) % len(lines)
         return text_response(lines[idx])
 
-    # Modo ciclo: avanza automáticamente una línea por invocación sin usar 'step'
     mode = (request.args.get("mode") or "").strip().lower()
     cycle_flag = mode == "cycle" or ((request.args.get("cycle") or "").strip().lower() in ("1", "true", "yes"))
     reset_flag = ((request.args.get("reset") or "").strip().lower() in ("1", "true", "yes"))
@@ -192,7 +194,6 @@ def duelo():
         _cache.set(progress_key, n, ttl=300)
         return text_response(lines[n-1])
 
-    # Por defecto: devuelve las 5 líneas en un único texto
     return text_response("\n".join(lines))
 
 
