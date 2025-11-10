@@ -36,26 +36,10 @@ Endpoints:
 
 #### Endpoint `/valorant/rango`:
 
-```python
-🎀💕 Actualmente estoy en Diamante 2 con 53 puntos 🤗✨. Mi última ranked fue con Jett, gané 18 puntos nayecuTeAmor
-```
-```python
-🎀💕 Actualmente estoy en Oro 1 con 45 puntos 🤗✨. Mi última ranked fue con Phoenix, perdí 12 puntos 😢
-```
-```python
-🎀💕 Actualmente estoy en Platino 3 con 0 puntos 🤗✨. Mi última ranked fue con Sage, no cambié de puntos 😐
-```
+Los ejemplos de respuesta para este endpoint están ahora en la guía técnica de Valorant. Ver ejemplos en [common/valorant.md](./common/valorant.md).
 
 #### Endpoint `/valorant/ultima-ranked`:
-```python
-🎀💕 Mi última ranked fue en Ascent con Jett, mi KDA fue 15/7/3. ganamos y gané 18 puntos nayecuTeAmor 🤗✨
-```
-```python
-🎀💕 Mi última ranked fue en Haven con Sage, mi KDA fue 8/10/12. perdimos y perdí 14 puntos 😢
-```
-```python
-🎀💕 Mi última ranked fue en Split con Omen, mi KDA fue 11/9/5. empatamos y no cambié de puntos 😐
-```
+Los ejemplos de respuesta para este endpoint están ahora en la guía técnica de Valorant. Ver ejemplos en [common/valorant.md](./common/valorant.md).
 - Los mensajes se pueden modificar.
 
 ## 🔹 Variables necesarias
