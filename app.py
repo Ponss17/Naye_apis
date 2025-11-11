@@ -28,7 +28,14 @@ def add_security_headers(resp: Response):
     resp.headers.setdefault('X-Content-Type-Options', 'nosniff')
     resp.headers.setdefault('X-Frame-Options', 'DENY')
     resp.headers.setdefault('Referrer-Policy', 'no-referrer')
-    resp.headers.setdefault('Content-Security-Policy', "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'")
+    # Permitimos scripts inline para las páginas HTML generadas (formularios y callback)
+    # sin relajar el resto de la política. Esto es necesario para que
+    # el callback lea el fragmento #access_token y para que los botones "Entrar"
+    # disparen su lógica de navegación.
+    resp.headers.setdefault(
+        'Content-Security-Policy',
+        "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
+    )
     return resp
 
 @app.route('/')
