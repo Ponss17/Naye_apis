@@ -341,7 +341,10 @@ def oauth_callback():
         """
         error_html = "<p class=\"error\">Contraseña incorrecta. Intenta nuevamente.</p>" if show_error else ""
         html = unauthorized.replace("__ERROR__", error_html)
-        resp = Response(html, mimetype="text/html", status=401)
+        # Si no hubo intento de contraseña, devolver 200 para evitar ruido de 401 en logs.
+        # Sólo marcar 401 cuando hubo intento y la contraseña es incorrecta.
+        status_code = 401 if show_error else 200
+        resp = Response(html, mimetype="text/html", status=status_code)
         resp.headers['Cache-Control'] = 'no-store'
         return resp
 
