@@ -224,6 +224,7 @@ def oauth_callback():
     # Protección por contraseña
     pwd = request.args.get("password") or request.headers.get("X-Endpoint-Password")
     if (ENDPOINT_PASSWORD or "") and pwd != (ENDPOINT_PASSWORD or ""):
+        show_error = bool(pwd)
         unauthorized = """
 <!doctype html>
 <html>
@@ -241,12 +242,14 @@ def oauth_callback():
       .row { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
       input { flex: 1; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: #111827; color: var(--text); }
       button { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--accent); color: white; font-weight: 600; cursor: pointer; }
+      .error { color: #ef4444; font-weight: 600; }
     </style>
   </head>
   <body>
     <div class=\"card\">
       <h1>Acceso protegido</h1>
       <p>Ingresa la clave para acceder al callback.</p>
+      __ERROR__
       <div class=\"row\">
         <input type=\"password\" id=\"pw\" placeholder=\"Contraseña\">
         <button id=\"go\">Entrar</button>
@@ -255,18 +258,26 @@ def oauth_callback():
     <script>
       (function(){
         const go = document.getElementById('go');
+        const pwInput = document.getElementById('pw');
         go.addEventListener('click', function(){
           const pw = document.getElementById('pw').value;
           const url = new URL(window.location.href);
           url.searchParams.set('password', pw);
           window.location.href = url.toString();
         });
+        pwInput.addEventListener('keydown', function(e){
+          if (e.key === 'Enter') { go.click(); }
+        });
+        // Enfocar el campo para facilitar el reintento
+        setTimeout(function(){ pwInput.focus(); pwInput.select && pwInput.select(); }, 10);
       })();
     </script>
   </body>
 </html>
         """
-        resp = Response(unauthorized, mimetype="text/html", status=401)
+        error_html = "<p class=\"error\">Contraseña incorrecta. Intenta nuevamente.</p>" if show_error else ""
+        html = unauthorized.replace("__ERROR__", error_html)
+        resp = Response(html, mimetype="text/html", status=401)
         resp.headers['Cache-Control'] = 'no-store'
         return resp
 
