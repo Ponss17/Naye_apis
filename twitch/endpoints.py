@@ -283,14 +283,35 @@ def oauth_callback():
         return resp
 
     # Protección por contraseña (acepta POST, query, header y cookie). Normaliza espacios.
-    raw_pwd = (request.form.get("password") if request.method == "POST" else None) \
-        or request.args.get("password") \
-        or request.headers.get("X-Endpoint-Password") \
-        or request.cookies.get("endpoint_pwd")
+    # Determina la fuente para distinguir cookie inválida (no debe contar como intento) de intentos explícitos.
+    pwd_source = None
+    raw_pwd = None
+    if request.method == "POST":
+        val = request.form.get("password")
+        if val is not None:
+            raw_pwd = val
+            pwd_source = "form"
+    if raw_pwd is None:
+        val = request.args.get("password")
+        if val is not None:
+            raw_pwd = val
+            pwd_source = "query"
+    if raw_pwd is None:
+        val = request.headers.get("X-Endpoint-Password")
+        if val is not None:
+            raw_pwd = val
+            pwd_source = "header"
+    if raw_pwd is None:
+        val = request.cookies.get("endpoint_pwd")
+        if val is not None:
+            raw_pwd = val
+            pwd_source = "cookie"
+
     pwd = (raw_pwd or "").strip()
     expected = (ENDPOINT_PASSWORD or "").strip()
     if expected and pwd != expected:
-        show_error = bool((raw_pwd or "").strip())
+        # Solo mostrar error (401) si hubo intento explícito (form/query/header). Para cookie inválida devolver 200.
+        show_error = bool((raw_pwd or "").strip()) and pwd_source != "cookie"
         unauthorized = """
 <!doctype html>
 <html>
@@ -345,6 +366,15 @@ def oauth_callback():
         # Sólo marcar 401 cuando hubo intento y la contraseña es incorrecta.
         status_code = 401 if show_error else 200
         resp = Response(html, mimetype="text/html", status=status_code)
+        # Si la cookie era inválida, limpiarla para evitar bucles de 401.
+        if pwd_source == "cookie":
+            try:
+                host = request.host or ""
+                xfp = (request.headers.get('X-Forwarded-Proto') or '').split(',')[0].strip()
+                secure = ('onrender.com' in host and xfp == 'https') or request.is_secure
+                resp.delete_cookie('endpoint_pwd', secure=secure, httponly=True, samesite='Lax')
+            except Exception:
+                pass
         resp.headers['Cache-Control'] = 'no-store'
         return resp
 
