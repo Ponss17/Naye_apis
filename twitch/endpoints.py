@@ -255,14 +255,24 @@ def oauth_callback():
       <h1>Acceso protegido</h1>
       <p>Ingresa la clave para acceder al callback.</p>
       __ERROR__
-      <form method=\"post\" class=\"row\">
-        <input type=\"password\" id=\"pw\" name=\"password\" placeholder=\"Contraseña\" autocomplete=\"current-password\">
-        <button id=\"go\" type=\"submit\">Entrar</button>
-      </form>
+      <div class=\"row\">
+        <input type=\"password\" id=\"pw\" placeholder=\"Contraseña\" autocomplete=\"current-password\">
+        <button id=\"go\">Entrar</button>
+      </div>
     </div>
     <script>
       (function(){
         const pwInput = document.getElementById('pw');
+        const go = document.getElementById('go');
+        function submitPwd(){
+          const pw = pwInput.value.trim();
+          const url = new URL(window.location.href);
+          // Preserva el fragmento #access_token devolviendo a la misma URL
+          url.searchParams.set('password', pw);
+          window.location.href = url.toString();
+        }
+        go.addEventListener('click', submitPwd);
+        pwInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') submitPwd(); });
         // Enfocar el campo para facilitar el reintento
         setTimeout(function(){ pwInput.focus(); pwInput.select && pwInput.select(); }, 10);
       })();
