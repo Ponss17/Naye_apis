@@ -31,6 +31,7 @@ Ambos deben estar dados de alta para poder iniciar el flujo desde producción o 
 4. Haz clic en “Autorizar con Twitch (implicit grant)”.
 5. Al volver al callback, verás el `access_token` en la página; copia ese valor.
 6. Guarda el token como `TWITCH_USER_TOKEN` en Render.
+7. Nota: si el endpoint está protegido, tras validar la contraseña el acceso se recuerda por ~10 minutos para no pedirla después del redirect de Twitch.
 
 ### Validar el token
 
@@ -42,6 +43,10 @@ Ambos deben estar dados de alta para poder iniciar el flujo desde producción o 
 - `/oauth/callback`
   - Página para iniciar y completar el flujo OAuth implícito.
   - Protegida por contraseña si defines `TWITCH_ENDPOINT_PASSWORD`.
+  - Valida por `?password=<clave>` o header `X-Endpoint-Password: <clave>` y conserva `#access_token` al usar GET.
+  - Si la contraseña es incorrecta, muestra un mensaje de error y permite reintentar (Enter envía, el campo se enfoca automáticamente).
+  - Tras validar correctamente, recuerda el acceso por 10 minutos con una cookie temporal (`endpoint_pwd`).
+  - Para cerrar sesión y reactivar la protección: botón “Cerrar sesión de callback” o `?logout=1` (ej. `/oauth/callback?logout=1`).
 
 - `/twitch/status`
   - Valida tokens de app y usuario sin exponer datos sensibles.
