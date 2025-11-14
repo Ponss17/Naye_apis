@@ -35,14 +35,13 @@ def _headers():
         "Authorization": f"Bearer {token}",
     }
 
-def _headers_user():
-    token = (USER_ACCESS_TOKEN or "").strip()
-    if not token:
-        # Esta llamada requiere token de usuario con los permisos relacionados del canal.
+def _headers_user(token: Optional[str] = None):
+    tok = (token or USER_ACCESS_TOKEN or "").strip()
+    if not tok:
         raise RuntimeError("Falta TWITCH_USER_TOKEN/USER_ACCESS_TOKEN para consultar seguidores")
     return {
         "Client-ID": CLIENT_ID,
-        "Authorization": f"Bearer {token}",
+        "Authorization": f"Bearer {tok}",
     }
 
 def get_user_id(login: str) -> Optional[str]:
@@ -108,4 +107,5 @@ def create_clip(channel: str, has_delay: bool | None = None, user_token: str | N
     resp = requests.post(url, headers=_headers_user(token_to_use), json=body, timeout=20)
     resp.raise_for_status()
     payload = resp.json()
-    return payload.get("data", [])
+    items = payload.get("data", [])
+    return items[0] if items else None

@@ -5,7 +5,7 @@ import urllib.parse
 from werkzeug.middleware.proxy_fix import ProxyFix
 from valorant.index import valorant_index
 from valorant.endpoints import rango, ultima_ranked
-from twitch.endpoints import followage, token, status, oauth_callback
+from twitch.endpoints import followage, token, status, oauth_callback, clips, create_clip_endpoint
 from twitch.index import twitch_index
 from common.response import text_response
 import logging
@@ -19,7 +19,7 @@ app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 logging.basicConfig(level=logging.INFO)
 
-limiter = Limiter(get_remote_address, app=app, default_limits=["100 per minute"]) 
+limiter = Limiter(get_remote_address, app=app, default_limits=["100 per minute"], storage_uri=os.environ.get("RATELIMIT_STORAGE_URI", "memory://")) 
 _session = get_session()
 
 # Cabeceras de seguridad para las respuestas

@@ -605,7 +605,7 @@ def clips():
         channel_id = get_user_id(channel_login)
         if not channel_id:
             return text_response(f"No encontré el canal '{channel_login}'.", 404)
-        items = get_clips(channel_id, first=limit)
+        items = get_clips(channel_login, limit)
     except requests.exceptions.HTTPError as e:
         status = getattr(e.response, "status_code", 500)
         msg = ""
