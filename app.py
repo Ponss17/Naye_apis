@@ -129,25 +129,6 @@ app.add_url_rule('/twitch/token', view_func=limiter.limit("10 per minute")(token
 app.add_url_rule('/twitch/status', view_func=limiter.limit("30 per minute")(status))
 app.add_url_rule('/oauth/callback', view_func=oauth_callback, methods=['GET','POST'])
 app.add_url_rule('/twitch/clips', view_func=limiter.limit("60 per minute")(clips))
-
-@app.route('/healthz')
-def healthz():
-    try:
-        # Chequeo rápido a Henrik API (Valorant)
-        r1 = _session.get("https://api.henrikdev.xyz/valorant/version", timeout=2)
-        # Chequeo rápido a Twitch Validate (no requiere credenciales)
-        r2 = _session.get("https://dev.twitch.tv/docs/api/reference", timeout=2)
-        if r1.status_code < 500 and r2.status_code < 500:
-            return text_response("ok")
-        return text_response("degraded", 502)
-    except Exception:
-        return text_response("down", 502)
-
-# Importar los endpoints de Twitch necesarios
-from twitch.endpoints import clips, create_clip_endpoint
-
-# Registro de rutas de Twitch (después del import)
-app.add_url_rule('/twitch/clips', view_func=limiter.limit("60 per minute")(clips))
 app.add_url_rule('/twitch/clips/create', view_func=limiter.limit("10 per minute")(create_clip_endpoint), methods=['GET', 'POST'])
 
 if __name__ == "__main__":
