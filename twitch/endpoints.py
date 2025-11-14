@@ -573,3 +573,71 @@ def oauth_callback():
         pass
     resp.headers['Cache-Control'] = 'no-store'
     return resp
+
+
+def clips():
+    """
+    Lista los últimos clips del canal. Uso:
+    - /twitch/clips?channel=<login>&limit=<n>
+    """
+    channel_login = request.args.get("channel", "").strip().lower() or (CHANNEL_LOGIN or "").strip().lower()
+    try:
+        limit_raw = request.args.get("limit", "").strip()
+        limit = int(limit_raw) if limit_raw else 5
+    except Exception:
+        limit = 5
+    limit = max(1, min(limit, 20))
+
+    if not channel_login:
+        return text_response("Falta configurar TWITCH_CHANNEL_LOGIN o pasar ?channel=<login>.", 400)
+    if not re.fullmatch(r"^[A-Za-z0-9_]{1,32}$", channel_login):
+        return text_response("'channel' inválido. Usa A–Z, 0–9 y _.", 400)
+    if not CLIENT_ID or not CLIENT_SECRET:
+        return text_response("Faltan TWITCH_CLIENT_ID y/o TWITCH_CLIENT_SECRET.", 500)
+
+    cache_key = f"clips:{channel_login}:{limit}"
+    cached = _cache.get(cache_key)
+    if cached:
+        return text_response(cached)
+
+    # Obtener ID del canal y clips
+    try:
+        channel_id = get_user_id(channel_login)
+        if not channel_id:
+            return text_response(f"No encontré el canal '{channel_login}'.", 404)
+        items = get_clips(channel_id, first=limit)
+    except requests.exceptions.HTTPError as e:
+        status = getattr(e.response, "status_code", 500)
+        msg = ""
+        try:
+            body = e.response.json()
+            msg = body.get("message") or body.get("error") or ""
+        except Exception:
+            try:
+                msg = e.response.text[:200]
+            except Exception:
+                msg = ""
+        return text_response(f"Error de Twitch ({status}): {msg}", 502)
+    except requests.exceptions.RequestException:
+        return text_response("No se pudo contactar a la API de Twitch.", 502)
+    except Exception:
+        logging.exception("Error inesperado en /twitch/clips")
+        return text_response("Error inesperado al consultar clips.", 500)
+
+    if not items:
+        return text_response(f"No se encontraron clips recientes para '{channel_login}'.")
+
+    # Formato de salida simple: título y URL
+    lines = []
+    for c in items:
+        title = (c.get("title") or "").strip()
+        url = (c.get("url") or "").strip()
+        created = c.get("created_at") or ""
+        creator = c.get("creator_name") or ""
+        views = c.get("view_count")
+        line = f"- {title} ({creator}, {views} vistas, {created})\n  {url}"
+        lines.append(line)
+
+    body = "Clips recientes:\n\n" + "\n".join(lines) + "\n"
+    _cache.set(cache_key, body)
+    return text_response(body)

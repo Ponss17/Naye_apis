@@ -142,6 +142,23 @@ def healthz():
     except Exception:
         return text_response("down", 502)
 
+# Importar clips y registrar la ruta
+from twitch.endpoints import clips
+app.add_url_rule('/twitch/clips', view_func=limiter.limit("60 per minute")(clips))
+
+@app.route('/healthz')
+def healthz():
+    try:
+        # Chequeo rápido a Henrik API (Valorant)
+        r1 = _session.get("https://api.henrikdev.xyz/valorant/version", timeout=2)
+        # Chequeo rápido a Twitch Validate (no requiere credenciales)
+        r2 = _session.get("https://dev.twitch.tv/docs/api/reference", timeout=2)
+        if r1.status_code < 500 and r2.status_code < 500:
+            return text_response("ok")
+        return text_response("degraded", 502)
+    except Exception:
+        return text_response("down", 502)
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
