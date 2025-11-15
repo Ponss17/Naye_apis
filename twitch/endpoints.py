@@ -5,9 +5,6 @@ import urllib.parse
 import requests
 import re
 import logging
-import hmac
-import hashlib
-import base64
 import time
 from common.response import text_response
 from common.http import get_session
@@ -18,23 +15,7 @@ _session = get_session()
 _cache = SimpleTTLCache(default_ttl=15)
 
 
-def _make_sig(channel_login: str) -> str:
-    secret = (ENDPOINT_PASSWORD or '').strip()
-    if not secret:
-        return ''
-    msg = f"clip:{channel_login}".encode('utf-8')
-    key = secret.encode('utf-8')
-    digest = hmac.new(key, msg, hashlib.sha256).digest()
-    return base64.urlsafe_b64encode(digest).decode().rstrip('=')
 
-def _valid_sig(channel_login: str, sig: str) -> bool:
-    try:
-        if not sig or not channel_login:
-            return False
-        expected = _make_sig(channel_login)
-        return expected and hmac.compare_digest(expected, sig.strip())
-    except Exception:
-        return False
 
 
 def _humanize_duration(delta_seconds: float) -> str:
@@ -234,21 +215,7 @@ def token():
         return resp
 
 
-def clip_link():
-    expected = (ENDPOINT_PASSWORD or '').strip()
-    raw_pwd = (request.headers.get('X-Endpoint-Password') or request.cookies.get('endpoint_pwd') or '').strip()
-    if expected and raw_pwd != expected:
-        return text_response('Acceso no autorizado. Envíe header X-Endpoint-Password.', 401)
-    channel_login = request.args.get('channel', '').strip().lower() or (CHANNEL_LOGIN or '').strip().lower()
-    if not channel_login:
-        return text_response('Falta configurar TWITCH_CHANNEL_LOGIN o pasar ?channel=<login>.', 400)
-    if not re.fullmatch(r"^[A-Za-z0-9_]{1,32}$", channel_login):
-        return text_response("'channel' inválido. Usa A–Z, 0–9 y _.", 400)
-    has_delay = (request.args.get('has_delay') or '').strip().lower() in ('1','true','yes')
-    sig = _make_sig(channel_login)
-    base = url_for('clip', _external=True)
-    link = f"{base}?channel={channel_login}&has_delay={'true' if has_delay else 'false'}&clip={sig}"
-    return text_response(link)
+
 
     if not CLIENT_ID or not CLIENT_SECRET:
         return text_response("Faltan TWITCH_CLIENT_ID y/o TWITCH_CLIENT_SECRET.", 500)
@@ -617,13 +584,10 @@ def oauth_callback():
 
 def clip():
     expected = (ENDPOINT_PASSWORD or "").strip()
-    # Firma HMAC opcional en URL (?clip=...), acepta también legado (?sig=...)
     channel_login = request.args.get("channel", "").strip().lower() or (CHANNEL_LOGIN or "").strip().lower()
-    sig = (request.args.get("clip") or request.args.get("sig") or "").strip()
     raw_pwd = (request.headers.get("X-Endpoint-Password") or request.cookies.get("endpoint_pwd") or "").strip()
-
-    if expected and not (raw_pwd == expected or _valid_sig(channel_login, sig)):
-        return text_response("Acceso no autorizado. Envíe header X-Endpoint-Password o ?clip=<firma>.", 401)
+    if expected and raw_pwd != expected:
+        return text_response("Acceso no autorizado. Envíe header X-Endpoint-Password.", 401)
     if not channel_login:
         return text_response("Falta configurar TWITCH_CHANNEL_LOGIN o pasar ?channel=<login>.", 400)
     if not re.fullmatch(r"^[A-Za-z0-9_]{1,32}$", channel_login):
