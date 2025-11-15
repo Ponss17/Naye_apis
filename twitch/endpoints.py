@@ -5,6 +5,8 @@ import urllib.parse
 import requests
 import re
 import logging
+import hmac
+import hashlib
 from common.response import text_response
 from common.http import get_session
 from common.cache import SimpleTTLCache
@@ -577,11 +579,24 @@ def oauth_callback():
 
 def clip():
     expected = (ENDPOINT_PASSWORD or "").strip()
-    raw_pwd = (request.headers.get("X-Endpoint-Password") or request.cookies.get("endpoint_pwd") or "").strip()
-    if expected and raw_pwd != expected:
-        return text_response("Acceso no autorizado. Envíe header X-Endpoint-Password.", 401)
-
+    # Firma HMAC opcional en URL (?clip=...), acepta también legado (?sig=...)
     channel_login = request.args.get("channel", "").strip().lower() or (CHANNEL_LOGIN or "").strip().lower()
+    sig = (request.args.get("clip") or request.args.get("sig") or "").strip()
+    raw_pwd = (request.headers.get("X-Endpoint-Password") or request.cookies.get("endpoint_pwd") or "").strip()
+
+    def _valid_sig(login: str, s: str) -> bool:
+        try:
+            if not s or not expected or not login:
+                return False
+            msg = login.encode("utf-8")
+            key = expected.encode("utf-8")
+            digest = hmac.new(key, msg, hashlib.sha256).hexdigest()
+            return hmac.compare_digest(digest, s)
+        except Exception:
+            return False
+
+    if expected and not (raw_pwd == expected or _valid_sig(channel_login, sig)):
+        return text_response("Acceso no autorizado. Envíe header X-Endpoint-Password o ?clip=<firma>.", 401)
     if not channel_login:
         return text_response("Falta configurar TWITCH_CHANNEL_LOGIN o pasar ?channel=<login>.", 400)
     if not re.fullmatch(r"^[A-Za-z0-9_]{1,32}$", channel_login):
