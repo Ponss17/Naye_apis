@@ -8,7 +8,7 @@ import logging
 from common.response import text_response
 from common.http import get_session
 from common.cache import SimpleTTLCache
-from twitch.api import get_user_id, get_follow_info, validate_token, create_clip
+from twitch.api import get_user_id, get_follow_info, validate_token, create_clip, get_clip_url
 
 _session = get_session()
 _cache = SimpleTTLCache(default_ttl=15)
@@ -577,9 +577,9 @@ def oauth_callback():
 
 def clip():
     expected = (ENDPOINT_PASSWORD or "").strip()
-    raw_pwd = (request.args.get("password") or request.headers.get("X-Endpoint-Password") or request.cookies.get("endpoint_pwd") or "").strip()
+    raw_pwd = (request.headers.get("X-Endpoint-Password") or request.cookies.get("endpoint_pwd") or "").strip()
     if expected and raw_pwd != expected:
-        return text_response("Acceso no autorizado. Proporcione ?password=<clave> o header X-Endpoint-Password.", 401)
+        return text_response("Acceso no autorizado. Envíe header X-Endpoint-Password.", 401)
 
     channel_login = request.args.get("channel", "").strip().lower() or (CHANNEL_LOGIN or "").strip().lower()
     if not channel_login:
@@ -616,5 +616,11 @@ def clip():
 
     clip_id = clip_obj.get("id") or ""
     edit_url = clip_obj.get("edit_url") or ""
-    body = f"Clip creado:\n- id: {clip_id}\n- url: {edit_url}\n"
-    return text_response(body)
+    clip_url = edit_url
+    try:
+        u = get_clip_url(clip_id)
+        if u:
+            clip_url = u
+    except Exception:
+        pass
+    return text_response(clip_url or edit_url or "")

@@ -61,6 +61,18 @@ def create_clip(channel: str, has_delay: bool | None = None, user_token: str | N
     items = payload.get("data", [])
     return items[0] if items else None
 
+
+def get_clip_url(clip_id: str):
+    url = "https://api.twitch.tv/helix/clips"
+    params = {"id": clip_id}
+    resp = requests.get(url, headers=_headers(), params=params, timeout=10)
+    resp.raise_for_status()
+    payload = resp.json()
+    data = payload.get("data", [])
+    if not data:
+        return None
+    return data[0].get("url")
+
 def get_user_id(login: str) -> Optional[str]:
     url = "https://api.twitch.tv/helix/users"
     params = {"login": login}
