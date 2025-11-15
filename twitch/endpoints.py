@@ -483,7 +483,7 @@ def oauth_callback():
         + (CLIENT_ID or "")
         + "&redirect_uri="
         + urllib.parse.quote(redirect_uri, safe="")
-        + "&response_type=token&scope=moderator%3Aread%3Afollowers&force_verify=true"
+        + "&response_type=token&scope=moderator%3Aread%3Afollowers%20clips%3Aedit&force_verify=true"
     )
     html_template = """
 <!doctype html>
