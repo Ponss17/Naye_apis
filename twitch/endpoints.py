@@ -583,12 +583,7 @@ def oauth_callback():
 
 
 def clip():
-    expected = (ENDPOINT_PASSWORD or "").strip()
     channel_login = request.args.get("channel", "").strip().lower() or (CHANNEL_LOGIN or "").strip().lower()
-    raw_pwd = (request.args.get("password") or request.headers.get("X-Endpoint-Password") or request.cookies.get("endpoint_pwd") or "").strip()
-
-    if expected and raw_pwd != expected:
-        return text_response("Acceso no autorizado. Proporcione ?password=<clave> o header X-Endpoint-Password.", 401)
     if not channel_login:
         return text_response("Falta configurar TWITCH_CHANNEL_LOGIN o pasar ?channel=<login>.", 400)
     if not re.fullmatch(r"^[A-Za-z0-9_]{1,32}$", channel_login):
